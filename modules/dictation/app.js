@@ -1404,19 +1404,36 @@ iPhone의 Siri 음성으로 받아쓰기를 들을 수 있습니다!
         try {
             console.log('🌐 Google TTS API 호출:', text.substring(0, 50) + '...');
             
-            // Netlify Function 엔드포인트 설정
-            const response = await fetch('/.netlify/functions/tts', {
-                method: 'POST',
-                headers: { 
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json'
-                },
-                body: JSON.stringify({
-                    text: text,
-                    voice: 'ko-KR-Neural2-A', // Neural2 음성 (가장 자연스러운 여성 음성)
-                    speed: this.currentRate || 1.0
-                })
-            });
+            // Netlify Function 엔드포인트 설정 (여러 경로 시도)
+            let response;
+            try {
+                response = await fetch('/.netlify/functions/tts', {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        text: text,
+                        voice: 'ko-KR-Neural2-A', // Neural2 음성 (가장 자연스러운 여성 음성)
+                        speed: this.currentRate || 1.0
+                    })
+                });
+            } catch (fetchError) {
+                console.log('🔄 첫 번째 경로 실패, /api/tts 시도...');
+                response = await fetch('/api/tts', {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        text: text,
+                        voice: 'ko-KR-Neural2-A',
+                        speed: this.currentRate || 1.0
+                    })
+                });
+            }
 
             if (!response.ok) {
                 throw new Error(`TTS API 응답 오류: ${response.status}`);
