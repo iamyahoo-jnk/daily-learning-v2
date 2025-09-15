@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>받아쓰기</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            max-width: 600px;
+            width: 100%;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: #2c3e50;
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .task-info {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            border-left: 4px solid #007bff;
+        }
+
+        .task-info .label {
+            font-weight: 600;
+            color: #495057;
+            margin-right: 10px;
+        }
+
+        .controls {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .btn-primary {
+            background: #007bff;
+            color: white;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background: #0056b3;
+            transform: translateY(-2px);
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-success:hover:not(:disabled) {
+            background: #1e7e34;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+
+        .input-section {
+            margin-bottom: 30px;
+        }
+
+        .input-label {
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        .text-input {
+            width: 100%;
+            min-height: 120px;
+            padding: 15px;
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            font-size: 16px;
+            resize: vertical;
+            transition: border-color 0.3s;
+        }
+
+        .text-input:focus {
+            outline: none;
+            border-color: #007bff;
+        }
+
+        .result-section {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .result-section.show {
+            display: block;
+        }
+
+        .result-section.correct {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+        }
+
+        .result-section.incorrect {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+        }
+
+        .result-title {
+            font-weight: 600;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+
+        .result-title.correct {
+            color: #155724;
+        }
+
+        .result-title.incorrect {
+            color: #721c24;
+        }
+
+        .answer-comparison {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .answer-box {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #dee2e6;
+        }
+
+        .answer-label {
+            font-weight: 600;
+            font-size: 12px;
+            color: #6c757d;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+
+        .answer-text {
+            font-size: 16px;
+            line-height: 1.4;
+        }
+
+        .status-info {
+            text-align: center;
+            color: #6c757d;
+            margin-bottom: 20px;
+        }
+
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            color: #6c757d;
+        }
+
+        .loading::before {
+            content: "⏳";
+            font-size: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 25px;
+                margin: 10px;
+            }
+
+            .controls {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .answer-comparison {
+                grid-template-columns: 1fr;
+            }
+
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+
+        }
+
+        /* 시각적 피드백 */
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        /* 미션 선택기 */
+        .mission-selector {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .mission-title {
+            font-size: 24px;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 20px;
+        }
+
+        .mission-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .mission-btn {
+            padding: 15px 25px;
+            border: none;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: #f8f9fa;
+            color: #495057;
+            border: 2px solid #e9ecef;
+        }
+
+        .mission-btn:hover {
+            background: #e3f2fd;
+            border-color: #2196f3;
+            transform: translateY(-2px);
+        }
+
+        .mission-btn.completed {
+            background: #d4edda;
+            border-color: #28a745;
+            color: #155724;
+        }
+
+        .mission-btn.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-color: transparent;
+        }
+
+        /* 카메라 섹션 */
+        .camera-section {
+            text-align: center;
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 15px;
+            border: 2px solid #e9ecef;
+        }
+
+        .camera-header {
+            font-size: 18px;
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 20px;
+        }
+
+        #cameraPreview {
+            width: 100%;
+            max-width: 400px;
+            height: 300px;
+            border-radius: 12px;
+            border: 2px solid #dee2e6;
+            background: #000;
+            object-fit: cover;
+            margin-bottom: 20px;
+        }
+
+        .camera-controls {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+        }
+
+        .capture-btn {
+            font-size: 18px;
+            padding: 15px 30px;
+            animation: pulse 2s infinite;
+        }
+
+        /* 사진 미리보기 섹션 */
+        .photo-preview-section {
+            text-align: center;
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 15px;
+            border: 2px solid #e9ecef;
+        }
+
+        .photo-header {
+            font-size: 18px;
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 20px;
+        }
+
+        .captured-photo {
+            width: 100%;
+            max-width: 400px;
+            border-radius: 12px;
+            border: 2px solid #dee2e6;
+            margin-bottom: 20px;
+        }
+
+        .photo-controls {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+        }
+
+        .submitted-photo {
+            width: 100%;
+            max-width: 300px;
+            border-radius: 8px;
+            border: 1px solid #dee2e6;
+        }
+
+        /* 네비게이션 섹션 */
+        .navigation-section {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            margin-top: 30px;
+            text-align: center;
+            border: 2px solid #e9ecef;
+        }
+
+        .navigation-buttons {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+        }
+
+        .nav-btn {
+            padding: 15px 25px;
+            font-size: 16px;
+            font-weight: 600;
+            border-radius: 25px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            min-width: 200px;
+            justify-content: center;
+        }
+
+        .nav-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+        }
+
+        .nav-btn.btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .nav-btn.btn-secondary {
+            background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+            color: white;
+        }
+
+        .btn-icon {
+            font-size: 18px;
+        }
+
+        .btn-text {
+            font-weight: 600;
+        }
+
+        .navigation-note {
+            font-size: 14px;
+            color: #6c757d;
+            font-style: italic;
+            margin-top: 10px;
+        }
+
+        /* Mission Clear */
+        .mission-clear-section {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .mission-clear-title {
+            font-size: 48px;
+            font-weight: bold;
+            color: #ffd700;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            margin-bottom: 20px;
+            animation: pulse 2s infinite;
+        }
+
+        .mission-clear-message {
+            font-size: 24px;
+            color: white;
+            margin-bottom: 30px;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+        }
+
+        @media (max-width: 768px) {
+            .mission-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .mission-btn {
+                width: 200px;
+            }
+
+            #cameraPreview {
+                height: 250px;
+            }
+
+            .mission-clear-title {
+                font-size: 36px;
+            }
+
+            .mission-clear-message {
+                font-size: 18px;
+            }
+
+            .navigation-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .nav-btn {
+                width: 100%;
+                min-width: auto;
+            }
+
+            .navigation-section {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎧 받아쓰기</h1>
+            <div class="status-info" id="statusInfo">문제를 준비하는 중...</div>
+        </div>
+
+        <div class="task-info" id="taskInfo" style="display: none;">
+            <div><span class="label">문제 번호:</span><span id="problemNumber">-</span></div>
+        </div>
+
+        <!-- 미션 선택 버튼들 -->
+        <div id="missionSelector" class="mission-selector" style="display: none;">
+            <div class="mission-title">Select Mission</div>
+            <div class="mission-buttons" id="missionButtons">
+                <!-- 동적으로 생성됨 -->
+            </div>
+        </div>
+
+        <div class="controls">
+            <button id="playBtn" class="btn btn-primary" disabled>
+                🔊 듣기
+            </button>
+            <button id="voiceInfoBtn" class="btn btn-secondary" onclick="dictationModule.showVoiceInfo()" style="display: none;">
+                🎤 음성 정보
+            </button>
+            <button id="iosSystemBtn" class="btn btn-success" onclick="dictationModule.tryDirectSystemTTS()" style="display: none;">
+                🍎 Siri 음성
+            </button>
+            <button id="iosShortcutsBtn" class="btn btn-secondary" onclick="dictationModule.createiOSShortcut()" style="display: none;">
+                ⚡ Shortcuts 생성
+            </button>
+            <button id="googleTTSBtn" class="btn btn-success" onclick="dictationModule.testGoogleTTS()" style="display: inline-flex;">
+                🌟 Google 여성음성
+            </button>
+        </div>
+
+        <div class="input-section">
+            <label class="input-label">들은 내용을 종이에 받아쓰고 사진을 촬영하세요:</label>
+            
+            <!-- 카메라 화면 -->
+            <div id="cameraSection" class="camera-section" style="display: none;">
+                <div class="camera-header">📷 카메라로 받아쓰기 촬영하기</div>
+                <video id="cameraPreview" autoplay playsinline></video>
+                <canvas id="photoCanvas" style="display: none;"></canvas>
+                
+                <div class="camera-controls">
+                    <button id="captureBtn" class="btn btn-primary capture-btn">📷 촬영하기</button>
+                    <button id="cancelCameraBtn" class="btn btn-secondary">❌ 취소</button>
+                </div>
+            </div>
+            
+            <!-- 촬영한 사진 확인 -->
+            <div id="photoPreview" class="photo-preview-section" style="display: none;">
+                <div class="photo-header">📸 촬영한 사진 확인</div>
+                <img id="capturedPhoto" class="captured-photo">
+                <div class="photo-controls">
+                    <button id="retakeBtn" class="btn btn-secondary">🔄 다시 촬영</button>
+                    <button id="confirmPhotoBtn" class="btn btn-success">✅ 제출하기</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <button id="submitBtn" class="btn btn-success" disabled>
+                📷 사진 촬영하기
+            </button>
+        </div>
+
+        <!-- 결과 후 네비게이션 -->
+        <div id="navigationSection" class="navigation-section" style="display: none;">
+            <div class="navigation-buttons">
+                <button id="nextMissionBtn" class="btn btn-primary nav-btn" style="display: none;">
+                    <span class="btn-icon">➡️</span>
+                    <span class="btn-text">Next Mission</span>
+                </button>
+                <button id="backToMissionsBtn" class="btn btn-secondary nav-btn">
+                    <span class="btn-icon">📋</span>
+                    <span class="btn-text">미션 선택으로 돌아가기</span>
+                </button>
+            </div>
+            <div class="navigation-note">
+                다른 미션을 선택하거나 다음 미션으로 진행할 수 있습니다.
+            </div>
+        </div>
+
+        <!-- Mission Clear 메시지 -->
+        <div id="missionClearSection" class="mission-clear-section" style="display: none;">
+            <div class="mission-clear-title">🎉 MISSION CLEAR! 🎉</div>
+            <div class="mission-clear-message">All missions completed successfully!</div>
+            <button id="closeMissionBtn" class="btn btn-success">Close</button>
+        </div>
+
+        <div id="resultSection" class="result-section">
+            <div id="resultTitle" class="result-title">제출 완료</div>
+            <div id="resultMessage"></div>
+            
+            <!-- 정답 표시 -->
+            <div id="correctAnswerSection" class="answer-box" style="display: none;">
+                <div class="answer-label">정답</div>
+                <div id="correctAnswer" class="answer-text"></div>
+            </div>
+            
+            <!-- 제출한 사진 표시 -->
+            <div id="submittedPhotoSection" style="display: none; margin-top: 15px;">
+                <div class="answer-label">제출한 사진</div>
+                <img id="submittedPhoto" class="submitted-photo">
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="./app.js"></script>
+</body>
+</html>

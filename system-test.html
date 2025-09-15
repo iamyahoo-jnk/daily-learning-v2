@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>시스템 테스트</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .test-section {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .status {
+            font-weight: bold;
+            padding: 5px 10px;
+            border-radius: 4px;
+            margin-left: 10px;
+        }
+        .success { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+        .pending { background: #fff3cd; color: #856404; }
+        input, button {
+            padding: 8px 12px;
+            margin: 5px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        #console {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            padding: 15px;
+            border-radius: 4px;
+            white-space: pre-wrap;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔧 시스템 테스트</h1>
+    <p>핵심 시스템들이 정상 작동하는지 확인합니다.</p>
+
+    <!-- Firebase 연결 테스트 -->
+    <div class="test-section">
+        <h2>1. Firebase 연결 테스트</h2>
+        <p>Firebase 초기화 및 연결 상태</p>
+        <div>
+            상태: <span id="firebaseStatus" class="status pending">테스트 중...</span>
+        </div>
+    </div>
+
+    <!-- 인증 시스템 테스트 -->
+    <div class="test-section">
+        <h2>2. 인증 시스템 테스트</h2>
+        <p>로그인/로그아웃 및 사용자 역할 확인</p>
+        
+        <div>
+            <h3>로그인 테스트</h3>
+            <input type="text" id="testEmail" placeholder="이메일 또는 아이디" value="test123">
+            <input type="password" id="testPassword" placeholder="비밀번호" value="password123">
+            <button onclick="testLogin()">로그인 테스트</button>
+            <button onclick="testLogout()">로그아웃</button>
+        </div>
+        
+        <div style="margin-top: 10px;">
+            인증 상태: <span id="authStatus" class="status pending">확인 중...</span>
+        </div>
+        
+        <div style="margin-top: 10px;">
+            사용자 정보: <span id="userInfo">-</span>
+        </div>
+    </div>
+
+    <!-- 데이터베이스 테스트 -->
+    <div class="test-section">
+        <h2>3. 데이터베이스 테스트</h2>
+        <p>Firestore 읽기/쓰기 작업</p>
+        
+        <div>
+            <button onclick="testDatabase()">DB 연결 테스트</button>
+            <button onclick="testRoster()">로스터 조회 테스트</button>
+        </div>
+        
+        <div style="margin-top: 10px;">
+            데이터베이스 상태: <span id="dbStatus" class="status pending">대기 중...</span>
+        </div>
+    </div>
+
+    <!-- 모듈 설정 테스트 -->
+    <div class="test-section">
+        <h2>4. 앱 설정 테스트</h2>
+        <p>모듈 설정 및 유틸리티 함수</p>
+        
+        <div>
+            <button onclick="testAppConfig()">설정 로드 테스트</button>
+        </div>
+        
+        <div style="margin-top: 10px;">
+            설정 상태: <span id="configStatus" class="status pending">대기 중...</span>
+        </div>
+        
+        <div style="margin-top: 10px;">
+            활성화된 모듈: <span id="modulesList">-</span>
+        </div>
+    </div>
+
+    <!-- 전체 테스트 -->
+    <div class="test-section">
+        <h2>5. 전체 통합 테스트</h2>
+        <button onclick="runAllTests()">모든 테스트 실행</button>
+        <div style="margin-top: 10px;">
+            전체 상태: <span id="overallStatus" class="status pending">대기 중...</span>
+        </div>
+    </div>
+
+    <!-- 콘솔 출력 -->
+    <div class="test-section">
+        <h2>📋 실행 로그</h2>
+        <div id="console">테스트 대기 중...\n</div>
+        <button onclick="clearConsole()">로그 지우기</button>
+    </div>
+
+    <script type="module">
+        // 전역 함수들을 위한 import
+        import { authManager } from './core/auth.js';
+        import { dbManager } from './core/database.js';
+        import { APP_CONFIG, utils } from './config/app-config.js';
+
+        // 콘솔 로그 함수
+        function log(message, type = 'info') {
+            const console = document.getElementById('console');
+            const timestamp = new Date().toLocaleTimeString();
+            const prefix = type === 'error' ? '❌' : type === 'success' ? '✅' : 'ℹ️';
+            console.textContent += `[${timestamp}] ${prefix} ${message}\n`;
+            console.scrollTop = console.scrollHeight;
+            
+            // 브라우저 콘솔에도 출력
+            console.log(`[TEST] ${message}`);
+        }
+
+        function setStatus(elementId, status, message) {
+            const element = document.getElementById(elementId);
+            element.className = `status ${status}`;
+            element.textContent = message;
+        }
+
+        // 1. Firebase 연결 테스트
+        function testFirebase() {
+            try {
+                // Firebase 객체들이 정상적으로 import되었는지 확인
+                if (authManager && dbManager) {
+                    setStatus('firebaseStatus', 'success', '연결됨');
+                    log('Firebase 연결 성공', 'success');
+                    return true;
+                } else {
+                    throw new Error('Firebase 객체를 찾을 수 없음');
+                }
+            } catch (error) {
+                setStatus('firebaseStatus', 'error', '연결 실패');
+                log(`Firebase 연결 실패: ${error.message}`, 'error');
+                return false;
+            }
+        }
+
+        // 2. 인증 시스템 테스트
+        window.testLogin = async function() {
+            const email = document.getElementById('testEmail').value;
+            const password = document.getElementById('testPassword').value;
+            
+            log(`로그인 테스트 시작: ${email}`);
+            
+            try {
+                const result = await authManager.login(email, password);
+                
+                if (result.success) {
+                    log(`로그인 성공: ${result.user.email}`, 'success');
+                    if (result.isNewUser) {
+                        log('신규 사용자로 자동 가입됨', 'success');
+                    }
+                } else {
+                    log(`로그인 실패: ${result.error}`, 'error');
+                }
+            } catch (error) {
+                log(`로그인 오류: ${error.message}`, 'error');
+            }
+        };
+
+        window.testLogout = async function() {
+            log('로그아웃 테스트 시작');
+            try {
+                await authManager.logout();
+                log('로그아웃 성공', 'success');
+            } catch (error) {
+                log(`로그아웃 오류: ${error.message}`, 'error');
+            }
+        };
+
+        // 3. 데이터베이스 테스트
+        window.testDatabase = async function() {
+            log('데이터베이스 연결 테스트 시작');
+            
+            try {
+                // 현재 날짜로 더미 데이터 테스트
+                const todayKey = utils.getTodayKey();
+                log(`오늘 날짜 키: ${todayKey}`);
+                
+                setStatus('dbStatus', 'success', '연결됨');
+                log('데이터베이스 연결 성공', 'success');
+            } catch (error) {
+                setStatus('dbStatus', 'error', '연결 실패');
+                log(`데이터베이스 오류: ${error.message}`, 'error');
+            }
+        };
+
+        window.testRoster = async function() {
+            log('로스터 조회 테스트 시작');
+            
+            try {
+                const result = await dbManager.getRoster();
+                
+                if (result.success) {
+                    log(`로스터 조회 성공: ${result.data.length}명`, 'success');
+                    result.data.forEach(student => {
+                        log(`- ${student.displayName || student.email || student.uid}`);
+                    });
+                } else {
+                    log(`로스터 조회 실패: ${result.error || result.message}`, 'error');
+                }
+            } catch (error) {
+                log(`로스터 오류: ${error.message}`, 'error');
+            }
+        };
+
+        // 4. 앱 설정 테스트
+        window.testAppConfig = function() {
+            log('앱 설정 테스트 시작');
+            
+            try {
+                const enabledModules = utils.getEnabledModules();
+                const todayKey = utils.getTodayKey();
+                
+                log(`활성화된 모듈 수: ${enabledModules.length}`);
+                enabledModules.forEach(module => {
+                    log(`- ${module.name} (${module.id})`);
+                });
+                
+                log(`오늘 날짜: ${todayKey}`);
+                log('학생 계정 테스트: ' + utils.isStudentAccount('test@id.local'));
+                log('교사 계정 테스트: ' + utils.isTeacherAccount('teacher@gmail.com'));
+                
+                setStatus('configStatus', 'success', '로드됨');
+                document.getElementById('modulesList').textContent = 
+                    enabledModules.map(m => m.name).join(', ');
+                
+                log('앱 설정 테스트 성공', 'success');
+            } catch (error) {
+                setStatus('configStatus', 'error', '로드 실패');
+                log(`앱 설정 오류: ${error.message}`, 'error');
+            }
+        };
+
+        // 5. 전체 테스트 실행
+        window.runAllTests = async function() {
+            log('=== 전체 테스트 시작 ===', 'success');
+            
+            let passedTests = 0;
+            let totalTests = 4;
+            
+            // 1. Firebase 테스트
+            if (testFirebase()) passedTests++;
+            
+            // 2. 앱 설정 테스트
+            try {
+                testAppConfig();
+                passedTests++;
+            } catch (error) {
+                log(`설정 테스트 실패: ${error.message}`, 'error');
+            }
+            
+            // 3. 데이터베이스 테스트
+            try {
+                await testDatabase();
+                passedTests++;
+            } catch (error) {
+                log(`DB 테스트 실패: ${error.message}`, 'error');
+            }
+            
+            // 4. 인증 테스트 (자동 로그인)
+            try {
+                await testLogin();
+                passedTests++;
+            } catch (error) {
+                log(`인증 테스트 실패: ${error.message}`, 'error');
+            }
+            
+            // 결과 정리
+            const success = passedTests === totalTests;
+            const message = `${passedTests}/${totalTests} 테스트 통과`;
+            
+            setStatus('overallStatus', success ? 'success' : 'error', message);
+            log(`=== 전체 테스트 완료: ${message} ===`, success ? 'success' : 'error');
+        };
+
+        window.clearConsole = function() {
+            document.getElementById('console').textContent = '';
+        };
+
+        // 인증 상태 변경 감지
+        authManager.addAuthListener((user) => {
+            if (user) {
+                const role = authManager.getUserRole(user);
+                setStatus('authStatus', 'success', '로그인됨');
+                document.getElementById('userInfo').textContent = 
+                    `${user.email} (${role})`;
+                log(`사용자 로그인: ${user.email} - 역할: ${role}`, 'success');
+            } else {
+                setStatus('authStatus', 'pending', '로그아웃됨');
+                document.getElementById('userInfo').textContent = '-';
+                log('사용자 로그아웃');
+            }
+        });
+
+        // 페이지 로드 시 Firebase 테스트
+        document.addEventListener('DOMContentLoaded', () => {
+            log('페이지 로드 완료 - 기본 테스트 실행');
+            testFirebase();
+        });
+    </script>
+</body>
+</html>

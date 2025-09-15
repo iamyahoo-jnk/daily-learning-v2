@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>교사 콘솔 - 센소리 앤 브레인</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* 헤더 */
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            margin-bottom: 40px;
+            text-align: center;
+        }
+
+        .header h1 {
+            color: #2c3e50;
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+
+        .header .subtitle {
+            color: #6c757d;
+            font-size: 16px;
+        }
+
+        .user-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #e9ecef;
+        }
+
+        /* 로그인 카드 */
+        .login-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            max-width: 500px;
+            margin: 50px auto;
+        }
+
+        .login-card h2 {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #2c3e50;
+        }
+
+        /* 메인 콘텐츠 숨김 */
+        .main-content {
+            display: none;
+        }
+
+        /* 메뉴 그리드 */
+        .menu-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        /* 메뉴 카드 */
+        .menu-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            text-decoration: none;
+            color: inherit;
+            border: 2px solid transparent;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .menu-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+            border-color: rgba(102, 126, 234, 0.3);
+        }
+
+        .menu-card.disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .menu-card.disabled:hover {
+            transform: none;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+        }
+
+        .menu-icon {
+            font-size: 48px;
+            margin-bottom: 20px;
+            display: block;
+        }
+
+        .menu-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+
+        .menu-description {
+            color: #6c757d;
+            line-height: 1.5;
+            margin-bottom: 20px;
+        }
+
+        .menu-status {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .status-active {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-inactive {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .status-coming {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        /* 관리 섹션 */
+        .management-section {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+
+        .section-title {
+            color: #2c3e50;
+            font-size: 24px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #e9ecef;
+            padding-bottom: 10px;
+        }
+
+        /* 학생 선택 */
+        .student-selector {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .student-selector select {
+            flex: 1;
+            min-width: 250px;
+            padding: 12px 15px;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            font-size: 16px;
+            background: white;
+            transition: border-color 0.3s;
+        }
+
+        .student-selector select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .student-info {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 10px;
+            color: #495057;
+            font-size: 14px;
+        }
+
+        /* 폼 요소 */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #495057;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        /* 버튼 */
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-small {
+            padding: 8px 16px;
+            font-size: 14px;
+        }
+
+        /* 빠른 액션 */
+        .quick-actions {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        /* 학생 관리 폼 */
+        .student-form {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 12px;
+            margin-top: 15px;
+            border: 2px solid #e9ecef;
+        }
+
+        .student-form.expanded {
+            border-color: #667eea;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+            align-items: end;
+        }
+
+        .form-row .form-group {
+            flex: 1;
+            margin-bottom: 0;
+        }
+
+        .form-row .form-group:last-child {
+            flex: none;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c82333;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(220, 53, 69, 0.4);
+        }
+
+        .student-list {
+            max-height: 300px;
+            overflow-y: auto;
+            margin-top: 15px;
+        }
+
+        .student-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 15px;
+            background: white;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            transition: all 0.2s;
+        }
+
+        .student-item:hover {
+            border-color: #667eea;
+            background: #f8f9fa;
+        }
+
+        .student-item.selected {
+            border-color: #667eea;
+            background: rgba(102, 126, 234, 0.1);
+        }
+
+        .student-details {
+            flex: 1;
+        }
+
+        .student-name {
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 2px;
+        }
+
+        .student-email {
+            font-size: 12px;
+            color: #6c757d;
+        }
+
+        .student-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        /* 상태 표시 */
+        .alert {
+            padding: 15px 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        /* 반응형 */
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+            
+            .menu-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+
+            .header {
+                padding: 20px;
+            }
+
+            .header h1 {
+                font-size: 24px;
+            }
+
+            .user-info {
+                flex-direction: column;
+                gap: 10px;
+                text-align: center;
+            }
+
+            .student-selector {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .quick-actions {
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 헤더 -->
+        <div class="header">
+            <h1>교사 콘솔</h1>
+            <div class="subtitle">학습 관리 시스템</div>
+            <div class="user-info">
+                <span id="teacherInfo" class="status pending">로그인 필요</span>
+                <button id="logoutBtn" class="btn btn-secondary btn-small" style="display: none;">로그아웃</button>
+            </div>
+        </div>
+
+        <!-- 로그인 섹션 -->
+        <div id="loginSection" class="login-card">
+            <h2>교사 로그인</h2>
+            <div class="form-group">
+                <label for="loginEmail">이메일</label>
+                <input type="email" id="loginEmail" placeholder="teacher@gmail.com">
+            </div>
+            <div class="form-group">
+                <label for="loginPassword">비밀번호</label>
+                <input type="password" id="loginPassword" placeholder="비밀번호 입력">
+            </div>
+            <div class="form-group">
+                <button id="loginBtn" class="btn btn-primary" style="width: 100%;">로그인</button>
+            </div>
+            <div id="loginStatus" class="alert" style="display: none;"></div>
+        </div>
+
+        <!-- 메인 콘텐츠 -->
+        <div id="mainContent" class="main-content">
+            <!-- 학생 관리 -->
+            <div class="management-section">
+                <h2 class="section-title">학생 관리</h2>
+                
+                <!-- 학생 선택 -->
+                <div class="student-selector">
+                    <select id="selectedStudent">
+                        <option value="">학생을 선택하세요</option>
+                    </select>
+                    <button id="toggleStudentFormBtn" class="btn btn-secondary">학생 추가/삭제</button>
+                </div>
+                
+                <div id="studentInfo" class="student-info" style="display: none;">
+                    선택된 학생 정보가 표시됩니다.
+                </div>
+
+                <!-- 학생 관리 폼 (기본 숨김) -->
+                <div id="studentForm" class="student-form" style="display: none;">
+                    <h3 style="margin-bottom: 20px; color: #2c3e50;">👥 학생 계정 관리</h3>
+                    
+                    <!-- 새 학생 추가 -->
+                    <div style="background: white; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                        <h4 style="margin-bottom: 15px; color: #495057;">새 학생 추가</h4>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="newStudentId">학생 아이디</label>
+                                <input type="text" id="newStudentId" placeholder="영문/숫자 조합 (예: student01)">
+                            </div>
+                            <div class="form-group">
+                                <label for="newStudentPassword">초기 비밀번호</label>
+                                <input type="password" id="newStudentPassword" placeholder="최소 6자리">
+                            </div>
+                            <div class="form-group">
+                                <button id="addStudentBtn" class="btn btn-primary">추가</button>
+                            </div>
+                        </div>
+                        <div style="font-size: 12px; color: #6c757d; margin-top: 8px;">
+                            💡 학생은 아이디만으로 로그인할 수 있습니다. (예: student01 입력 → student01@id.local로 자동 변환)
+                        </div>
+                    </div>
+
+                    <!-- 기존 학생 목록 -->
+                    <div style="background: white; padding: 15px; border-radius: 8px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                            <h4 style="color: #495057; margin: 0;">등록된 학생 목록</h4>
+                            <button id="fixMissingAccountsBtn" class="btn btn-small btn-secondary" style="font-size: 12px;">누락 계정 복구</button>
+                        </div>
+                        <div id="studentList" class="student-list">
+                            학생 목록을 로드하는 중...
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 과제 관리 메뉴 -->
+            <div class="management-section">
+                <h2 class="section-title">과제 관리</h2>
+                <div class="menu-grid">
+                    <!-- 받아쓰기 과제 -->
+                    <div class="menu-card" data-task="dictation">
+                        <div class="menu-icon">🎧</div>
+                        <div class="menu-title">받아쓰기</div>
+                        <div class="menu-description">
+                            소리로 듣고 입력하는 받아쓰기 과제를 관리합니다.<br>
+                            문제 번호, 재생 속도 등을 설정할 수 있습니다.
+                        </div>
+                        <span class="menu-status status-active">사용 가능</span>
+                    </div>
+
+                    <!-- 읽기 과제 -->
+                    <div class="menu-card" data-task="reading">
+                        <div class="menu-icon">📖</div>
+                        <div class="menu-title">읽기</div>
+                        <div class="menu-description">
+                            텍스트를 보고 음성으로 듣는 읽기 과제를 관리합니다.<br>
+                            문제 번호, 읽기 속도 등을 설정할 수 있습니다.
+                        </div>
+                        <span class="menu-status status-active">사용 가능</span>
+                    </div>
+
+                    <!-- 어휘 학습 (미래) -->
+                    <div class="menu-card disabled">
+                        <div class="menu-icon">📚</div>
+                        <div class="menu-title">어휘 학습</div>
+                        <div class="menu-description">
+                            새로운 단어와 의미를 학습하는 과제입니다.<br>
+                            단어장, 퀴즈 등의 기능을 제공합니다.
+                        </div>
+                        <span class="menu-status status-coming">준비 중</span>
+                    </div>
+
+                    <!-- 수학 연산 (미래) -->
+                    <div class="menu-card disabled">
+                        <div class="menu-icon">🔢</div>
+                        <div class="menu-title">수학 연산</div>
+                        <div class="menu-description">
+                            기초 수학 문제를 풀어보는 과제입니다.<br>
+                            난이도별 문제 제공 및 진도 관리 기능이 있습니다.
+                        </div>
+                        <span class="menu-status status-coming">준비 중</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 관리 도구 -->
+            <div class="management-section">
+                <h2 class="section-title">관리 도구</h2>
+                <div class="menu-grid">
+                    <!-- 제출 현황 -->
+                    <div class="menu-card" onclick="window.open('./submissions.html', '_blank')">
+                        <div class="menu-icon">📊</div>
+                        <div class="menu-title">제출 현황</div>
+                        <div class="menu-description">
+                            학생들의 과제 제출 상황을 확인하고<br>
+                            점수와 진도를 관리할 수 있습니다.
+                        </div>
+                        <span class="menu-status status-active">사용 가능</span>
+                    </div>
+
+                    <!-- 대량 배정 -->
+                    <div class="menu-card" onclick="window.open('./bulk-assignment.html', '_blank')">
+                        <div class="menu-icon">📅</div>
+                        <div class="menu-title">대량 과제 배정</div>
+                        <div class="menu-description">
+                            여러 날짜에 걸쳐 과제를 한번에 배정하고<br>
+                            학습 계획을 수립할 수 있습니다.
+                        </div>
+                        <span class="menu-status status-coming">준비 중</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="./main-app.js"></script>
+</body>
+</html>

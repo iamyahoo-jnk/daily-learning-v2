@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>문법 테스트</title>
+</head>
+<body>
+    <h1>문법 테스트</h1>
+    <div id="output"></div>
+    
+    <script type="module">
+        const output = document.getElementById('output');
+        
+        function log(message) {
+            console.log(message);
+            const div = document.createElement('div');
+            div.textContent = message;
+            output.appendChild(div);
+        }
+        
+        log('1. 기본 스크립트 로드됨');
+        
+        try {
+            log('2. app.js import 시도...');
+            const module = await import('./app.js');
+            log('3. app.js import 성공');
+        } catch (error) {
+            log('❌ app.js import 실패: ' + error.message);
+            log('❌ 에러 스택: ' + error.stack);
+        }
+        
+        log('테스트 완료');
+    </script>
+</body>
+</html>

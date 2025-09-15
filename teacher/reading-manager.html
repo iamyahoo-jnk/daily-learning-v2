@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>읽기 관리 - 교사 콘솔</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f8f9fa;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* 헤더 */
+        .header {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .back-btn {
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .back-btn:hover {
+            background: #545b62;
+        }
+
+        .header-info {
+            flex-grow: 1;
+        }
+
+        .header h1 {
+            color: #2c3e50;
+            font-size: 28px;
+            margin-bottom: 5px;
+        }
+
+        .header-subtitle {
+            color: #6c757d;
+            font-size: 14px;
+        }
+
+        .task-icon {
+            font-size: 48px;
+            background: #f3e5f5;
+            padding: 15px;
+            border-radius: 15px;
+        }
+
+        /* 카드 레이아웃 */
+        .cards-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .card h2 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-size: 20px;
+            border-bottom: 2px solid #e9ecef;
+            padding-bottom: 10px;
+        }
+
+        /* 폼 요소 */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #495057;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #28a745;
+        }
+
+        /* 버튼 */
+        .btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+
+        .btn-primary { background: #28a745; color: white; }
+        .btn-success { background: #007bff; color: white; }
+        .btn-danger { background: #dc3545; color: white; }
+        .btn-secondary { background: #6c757d; color: white; }
+
+        .btn:hover {
+            transform: translateY(-1px);
+            opacity: 0.9;
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* 인라인 버튼 그룹 */
+        .btn-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-group .btn {
+            flex: 1;
+        }
+
+        /* 속도 컨트롤 */
+        .speed-control {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .speed-slider {
+            flex-grow: 1;
+        }
+
+        .speed-value {
+            min-width: 50px;
+            font-weight: 600;
+            color: #495057;
+        }
+
+        /* 과제 현황 */
+        .assignment-status {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .assignment-status h3 {
+            color: #495057;
+            margin-bottom: 15px;
+            font-size: 16px;
+        }
+
+        .status-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .status-item {
+            text-align: center;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+            border: 1px solid #dee2e6;
+        }
+
+        .status-number {
+            font-size: 24px;
+            font-weight: 700;
+            color: #28a745;
+            margin-bottom: 5px;
+        }
+
+        .status-label {
+            font-size: 12px;
+            color: #6c757d;
+            text-transform: uppercase;
+        }
+
+        /* 상태 표시 */
+        .alert {
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .alert-info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        /* 대량 배정 섹션 */
+        .bulk-section {
+            grid-column: 1 / -1;
+        }
+
+        .date-range {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .weekdays {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .weekday-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .weekday-item input {
+            width: auto;
+            margin: 0;
+        }
+
+        .weekday-label {
+            font-size: 12px;
+            color: #6c757d;
+        }
+
+        /* 읽기 특화 스타일 */
+        .reading-preview {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 15px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .text-sample {
+            background: white;
+            padding: 15px;
+            border-radius: 6px;
+            font-size: 16px;
+            line-height: 1.6;
+            color: #2c3e50;
+            margin-bottom: 10px;
+            border-left: 4px solid #28a745;
+        }
+
+        /* 반응형 */
+        @media (max-width: 768px) {
+            .container { padding: 15px; }
+            .cards-grid { grid-template-columns: 1fr; }
+            .header { flex-direction: column; text-align: center; }
+            .date-range { grid-template-columns: 1fr; }
+            .weekdays { grid-template-columns: repeat(4, 1fr); }
+            .btn-group { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 헤더 -->
+        <div class="header">
+            <button class="back-btn" onclick="history.back()">← 뒤로</button>
+            <div class="task-icon">📖</div>
+            <div class="header-info">
+                <h1>읽기 관리</h1>
+                <div class="header-subtitle" id="studentName">학생: 로딩 중...</div>
+            </div>
+        </div>
+
+        <!-- 메인 콘텐츠 -->
+        <div class="cards-grid">
+            <!-- 오늘 과제 배정 -->
+            <div class="card">
+                <h2>오늘 과제 배정</h2>
+                
+                <div class="form-group">
+                    <label for="todayNumbers">문제 번호</label>
+                    <input type="text" id="todayNumbers" placeholder="예: 1, 2, 3">
+                    <small style="color: #6c757d;">쉼표로 구분하여 여러 번호 입력</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="playbackRate">재생 속도</label>
+                    <div class="speed-control">
+                        <input type="range" id="speedSlider" class="speed-slider" 
+                               min="0.5" max="2.0" step="0.1" value="1.0">
+                        <span id="speedValue" class="speed-value">1.0x</span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <button id="previewTextBtn" class="btn btn-secondary" style="width: 100%; margin-bottom: 10px;">
+                        텍스트 미리보기
+                    </button>
+                    <div id="textPreview" class="reading-preview" style="display: none;">
+                        <div class="text-sample" id="previewContent">
+                            문제 번호를 입력하고 미리보기를 클릭하세요.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <div class="btn-group">
+                        <button id="assignTodayBtn" class="btn btn-primary">오늘 배정</button>
+                        <button id="clearTodayBtn" class="btn btn-danger">오늘 삭제</button>
+                    </div>
+                </div>
+
+                <div id="todayStatus" style="display: none;"></div>
+            </div>
+
+            <!-- 과제 현황 -->
+            <div class="card">
+                <h2>현재 상태</h2>
+                
+                <div id="currentStatus">
+                    <div style="text-align: center; color: #6c757d; padding: 20px;">
+                        과제 정보를 확인하는 중...
+                    </div>
+                </div>
+
+                <div class="assignment-status">
+                    <h3>오늘 배정 현황</h3>
+                    <div id="todayAssignment">
+                        <div style="color: #6c757d; text-align: center;">
+                            배정된 과제가 없습니다.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 대량 배정 -->
+            <div class="card bulk-section">
+                <h2>대량 배정 (기간별)</h2>
+                
+                <div class="date-range">
+                    <div class="form-group">
+                        <label for="bulkStartDate">시작일</label>
+                        <input type="date" id="bulkStartDate">
+                    </div>
+                    <div class="form-group">
+                        <label for="bulkDuration">기간</label>
+                        <select id="bulkDuration">
+                            <option value="1">1개월</option>
+                            <option value="2">2개월</option>
+                            <option value="3">3개월</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="bulkStartNumber">시작 문제 번호</label>
+                        <input type="number" id="bulkStartNumber" value="1" min="1">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>배정 요일 선택</label>
+                    <div class="weekdays">
+                        <div class="weekday-item">
+                            <input type="checkbox" id="mon" checked>
+                            <label for="mon" class="weekday-label">월</label>
+                        </div>
+                        <div class="weekday-item">
+                            <input type="checkbox" id="tue" checked>
+                            <label for="tue" class="weekday-label">화</label>
+                        </div>
+                        <div class="weekday-item">
+                            <input type="checkbox" id="wed" checked>
+                            <label for="wed" class="weekday-label">수</label>
+                        </div>
+                        <div class="weekday-item">
+                            <input type="checkbox" id="thu" checked>
+                            <label for="thu" class="weekday-label">목</label>
+                        </div>
+                        <div class="weekday-item">
+                            <input type="checkbox" id="fri" checked>
+                            <label for="fri" class="weekday-label">금</label>
+                        </div>
+                        <div class="weekday-item">
+                            <input type="checkbox" id="sat">
+                            <label for="sat" class="weekday-label">토</label>
+                        </div>
+                        <div class="weekday-item">
+                            <input type="checkbox" id="sun">
+                            <label for="sun" class="weekday-label">일</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <div class="btn-group">
+                        <button id="bulkAssignBtn" class="btn btn-success">대량 배정 시작</button>
+                        <button id="previewBtn" class="btn btn-secondary">배정 미리보기</button>
+                    </div>
+                </div>
+
+                <div id="bulkStatus" style="display: none;"></div>
+                <div id="bulkPreview" style="display: none; margin-top: 20px;"></div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="./reading-manager.js"></script>
+</body>
+</html>

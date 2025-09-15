@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>서버 데이터 구조 디버깅</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', monospace;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background: #fafafa;
+        }
+        .section h2 {
+            color: #333;
+            margin-top: 0;
+        }
+        .result {
+            background: #f8f8f8;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        button {
+            padding: 10px 20px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        .input-group {
+            margin: 10px 0;
+        }
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        .input-group input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 서버 데이터 구조 디버깅 도구</h1>
+        
+        <div class="section">
+            <h2>1. 로그인</h2>
+            <div class="input-group">
+                <label for="userId">학생 아이디:</label>
+                <input type="text" id="userId" placeholder="학생 아이디 입력">
+            </div>
+            <div class="input-group">
+                <label for="userPassword">비밀번호:</label>
+                <input type="password" id="userPassword" placeholder="비밀번호 입력">
+            </div>
+            <button onclick="loginAndDebug()">로그인 후 데이터 조사</button>
+            <div class="result" id="loginResult">로그인 결과가 여기에 표시됩니다...</div>
+        </div>
+
+        <div class="section">
+            <h2>2. 할당된 과제 조사</h2>
+            <button onclick="debugAssignments()">오늘 할당된 과제 조회</button>
+            <div class="result" id="assignmentResult">과제 조회 결과가 여기에 표시됩니다...</div>
+        </div>
+
+        <div class="section">
+            <h2>3. 제출 데이터 구조 조사</h2>
+            <button onclick="debugAllSubmissions()">모든 제출 데이터 조사</button>
+            <div class="result" id="submissionResult">제출 데이터 구조가 여기에 표시됩니다...</div>
+        </div>
+
+        <div class="section">
+            <h2>4. 특정 과제 ID 제출 상태 확인</h2>
+            <div class="input-group">
+                <label for="taskIdToCheck">확인할 과제 ID:</label>
+                <input type="text" id="taskIdToCheck" placeholder="예: task_20250912_001">
+            </div>
+            <button onclick="debugSpecificTask()">특정 과제 제출 상태 확인</button>
+            <div class="result" id="specificTaskResult">특정 과제 확인 결과가 여기에 표시됩니다...</div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { authManager } from './core/auth.js';
+        import { dbManager } from './core/database.js';
+        import { utils } from './config/app-config.js';
+
+        let currentUser = null;
+
+        window.loginAndDebug = async function() {
+            const loginResult = document.getElementById('loginResult');
+            const userId = document.getElementById('userId').value.trim();
+            const password = document.getElementById('userPassword').value.trim();
+            
+            if (!userId || !password) {
+                loginResult.textContent = '❌ 아이디와 비밀번호를 모두 입력해주세요.';
+                return;
+            }
+            
+            try {
+                loginResult.textContent = '🔐 로그인 시도 중...';
+                
+                const loginResponse = await authManager.login(userId, password);
+                
+                if (loginResponse.success) {
+                    currentUser = loginResponse.user;
+                    
+                    const result = `✅ 로그인 성공!
+👤 사용자 정보:
+  - UID: ${currentUser.uid}
+  - 이메일: ${currentUser.email}
+  - 표시명: ${currentUser.displayName}
+  - 역할: ${authManager.isStudent(currentUser) ? '학생' : '비학생'}
+  - UID 길이: ${currentUser.uid.length}자
+
+🌐 Firebase 연결 상태: 정상
+📅 오늘 날짜 키: ${utils.getTodayKey()}`;
+                    
+                    loginResult.textContent = result;
+                    
+                    // 자동으로 다른 디버깅도 실행
+                    setTimeout(() => {
+                        debugAssignments();
+                        debugAllSubmissions();
+                    }, 1000);
+                    
+                } else {
+                    loginResult.textContent = `❌ 로그인 실패: ${loginResponse.error}`;
+                }
+                
+            } catch (error) {
+                loginResult.textContent = `❌ 로그인 오류: ${error.message}\n스택: ${error.stack}`;
+            }
+        };
+
+        window.debugAssignments = async function() {
+            const assignmentResult = document.getElementById('assignmentResult');
+            
+            if (!currentUser) {
+                assignmentResult.textContent = '❌ 먼저 로그인해주세요.';
+                return;
+            }
+            
+            try {
+                assignmentResult.textContent = '📚 할당된 과제 조회 중...';
+                
+                const todayKey = utils.getTodayKey();
+                const assignmentResponse = await dbManager.getAssignment(currentUser.uid, todayKey);
+                
+                let result = `📅 조회 날짜: ${todayKey}\n`;
+                result += `👤 사용자 UID: ${currentUser.uid}\n\n`;
+                
+                if (assignmentResponse.success) {
+                    result += `✅ 할당된 과제 발견!\n`;
+                    result += `📊 과제 데이터:\n${JSON.stringify(assignmentResponse.data, null, 2)}`;
+                    
+                    if (assignmentResponse.data.tasks) {
+                        result += `\n\n📋 과제 목록 (${Array.isArray(assignmentResponse.data.tasks) ? assignmentResponse.data.tasks.length : Object.keys(assignmentResponse.data.tasks).length}개):`;
+                        
+                        const tasks = Array.isArray(assignmentResponse.data.tasks) ? assignmentResponse.data.tasks : Object.values(assignmentResponse.data.tasks);
+                        tasks.forEach((task, index) => {
+                            result += `\n  ${index + 1}. 타입: ${task.type}, ID: ${task.taskId || '없음'}, 아이템: ${task.items}`;
+                        });
+                    }
+                } else {
+                    result += `❌ 할당된 과제 없음\n오류: ${assignmentResponse.error || assignmentResponse.message}`;
+                }
+                
+                assignmentResult.textContent = result;
+                
+            } catch (error) {
+                assignmentResult.textContent = `❌ 과제 조회 오류: ${error.message}\n스택: ${error.stack}`;
+            }
+        };
+
+        window.debugAllSubmissions = async function() {
+            const submissionResult = document.getElementById('submissionResult');
+            
+            if (!currentUser) {
+                submissionResult.textContent = '❌ 먼저 로그인해주세요.';
+                return;
+            }
+            
+            try {
+                submissionResult.textContent = '📊 모든 제출 데이터 조사 중...';
+                
+                const submissionResponse = await dbManager.getAllSubmissionsByUser(currentUser.uid);
+                
+                let result = `👤 사용자 UID: ${currentUser.uid}\n`;
+                result += `📊 제출 데이터 조회 결과:\n\n`;
+                
+                if (submissionResponse.success && submissionResponse.data.length > 0) {
+                    result += `✅ ${submissionResponse.data.length}개의 제출 문서 발견!\n\n`;
+                    
+                    submissionResponse.data.forEach((submission, index) => {
+                        result += `📄 문서 ${index + 1} (ID: ${submission.documentId}):\n`;
+                        result += `${JSON.stringify(submission, null, 2)}\n\n`;
+                    });
+                    
+                } else {
+                    result += `❌ 제출 데이터 없음\n`;
+                    result += `응답: ${JSON.stringify(submissionResponse, null, 2)}`;
+                }
+                
+                submissionResult.textContent = result;
+                
+            } catch (error) {
+                submissionResult.textContent = `❌ 제출 데이터 조사 오류: ${error.message}\n스택: ${error.stack}`;
+            }
+        };
+
+        window.debugSpecificTask = async function() {
+            const specificTaskResult = document.getElementById('specificTaskResult');
+            const taskId = document.getElementById('taskIdToCheck').value.trim();
+            
+            if (!currentUser) {
+                specificTaskResult.textContent = '❌ 먼저 로그인해주세요.';
+                return;
+            }
+            
+            if (!taskId) {
+                specificTaskResult.textContent = '❌ 확인할 과제 ID를 입력해주세요.';
+                return;
+            }
+            
+            try {
+                specificTaskResult.textContent = `🔍 과제 ${taskId} 제출 상태 확인 중...`;
+                
+                const submissionResponse = await dbManager.getSubmissionByTaskId(currentUser.uid, taskId);
+                
+                let result = `🎯 과제 ID: ${taskId}\n`;
+                result += `👤 사용자 UID: ${currentUser.uid}\n`;
+                result += `📊 조회 결과:\n\n`;
+                
+                if (submissionResponse.success) {
+                    if (submissionResponse.data) {
+                        result += `✅ 제출 데이터 발견!\n`;
+                        result += `📄 제출 데이터:\n${JSON.stringify(submissionResponse.data, null, 2)}`;
+                    } else {
+                        result += `📝 제출 데이터 없음 (미완료 상태)`;
+                    }
+                } else {
+                    result += `❌ 조회 실패\n오류: ${submissionResponse.error}`;
+                }
+                
+                specificTaskResult.textContent = result;
+                
+            } catch (error) {
+                specificTaskResult.textContent = `❌ 특정 과제 확인 오류: ${error.message}\n스택: ${error.stack}`;
+            }
+        };
+    </script>
+</body>
+</html>

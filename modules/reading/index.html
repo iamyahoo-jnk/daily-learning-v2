@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>읽기</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            max-width: 700px;
+            width: 100%;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: #2c3e50;
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .task-info {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            border-left: 4px solid #28a745;
+        }
+
+        .task-info .label {
+            font-weight: 600;
+            color: #495057;
+            margin-right: 10px;
+        }
+
+        .controls {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .btn-primary {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background: #1e7e34;
+            transform: translateY(-2px);
+        }
+
+        .btn-success {
+            background: #007bff;
+            color: white;
+        }
+
+        .btn-success:hover:not(:disabled) {
+            background: #0056b3;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .speed-control {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .speed-slider {
+            width: 120px;
+        }
+
+        .speed-value {
+            min-width: 40px;
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .text-display {
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            min-height: 200px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .text-content {
+            font-size: 20px;
+            line-height: 1.8;
+            text-align: center;
+            color: #2c3e50;
+            word-break: keep-all;
+        }
+
+        .text-content.large-text {
+            font-size: 24px;
+            line-height: 2.0;
+        }
+
+        .status-info {
+            text-align: center;
+            color: #6c757d;
+            margin-bottom: 20px;
+        }
+
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            color: #6c757d;
+        }
+
+        .loading::before {
+            content: "⏳";
+            font-size: 20px;
+        }
+
+        .completion-section {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            display: none;
+            text-align: center;
+        }
+
+        .completion-section.show {
+            display: block;
+        }
+
+        .completion-title {
+            color: #155724;
+            font-weight: 600;
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+
+        .completion-message {
+            color: #155724;
+            margin-bottom: 15px;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 25px;
+                margin: 10px;
+            }
+
+            .controls {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .speed-control {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .text-content {
+                font-size: 18px;
+            }
+
+            .text-content.large-text {
+                font-size: 20px;
+            }
+        }
+
+        /* 시각적 피드백 */
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* 텍스트 하이라이트 효과 */
+        .text-highlight {
+            background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+            padding: 2px 4px;
+            border-radius: 4px;
+            animation: highlight 2s ease-in-out;
+        }
+
+        @keyframes highlight {
+            0% { background-color: transparent; }
+            50% { background-color: #fff3cd; }
+            100% { background-color: transparent; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📖 읽기</h1>
+            <div class="status-info" id="statusInfo">문제를 준비하는 중...</div>
+        </div>
+
+        <div class="task-info" id="taskInfo" style="display: none;">
+            <div><span class="label">문제 번호:</span><span id="problemNumber">-</span></div>
+            <div><span class="label">재생 속도:</span><span id="playbackSpeed">1.0x</span></div>
+        </div>
+
+        <div class="controls">
+            <button id="listenBtn" class="btn btn-primary" disabled>
+                🔊 읽어주기
+            </button>
+            
+            <button id="repeatBtn" class="btn btn-secondary" disabled>
+                🔄 다시 듣기
+            </button>
+
+            <div class="speed-control">
+                <label>속도:</label>
+                <input type="range" id="speedSlider" class="speed-slider" 
+                       min="0.5" max="2.0" step="0.1" value="1.0">
+                <span id="speedValue" class="speed-value">1.0x</span>
+            </div>
+        </div>
+
+        <div class="text-display">
+            <div id="textContent" class="text-content">
+                문제를 불러오는 중입니다...
+            </div>
+        </div>
+
+        <div class="controls">
+            <button id="completeBtn" class="btn btn-success" disabled>
+                ✅ 완료하기
+            </button>
+        </div>
+
+        <div id="completionSection" class="completion-section">
+            <div class="completion-title">🎉 읽기 완료!</div>
+            <div class="completion-message">수고하셨습니다. 읽기 연습을 완료했습니다.</div>
+        </div>
+    </div>
+
+    <script type="module" src="./app.js"></script>
+</body>
+</html>

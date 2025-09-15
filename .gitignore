@@ -1,0 +1,23 @@
+# Node modules
+node_modules/
+npm-debug.log*
+
+# Google Cloud credentials (보안상 중요!)
+*.json
+credentials/
+server/credentials/
+
+# Local environment
+.env
+.env.local
+
+# Cache
+server/tts-cache/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/

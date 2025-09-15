@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>학생 로그인 - 센소리 앤 브레인</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #333;
+            padding: 20px;
+        }
+
+        .login-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 50px;
+            border-radius: 20px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 500px;
+            text-align: center;
+        }
+
+        .logo {
+            font-size: 64px;
+            margin-bottom: 20px;
+        }
+
+        .title {
+            font-size: 32px;
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .subtitle {
+            color: #6c757d;
+            font-size: 16px;
+            margin-bottom: 40px;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+            text-align: left;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #495057;
+            font-size: 16px;
+        }
+
+        input {
+            width: 100%;
+            padding: 15px 20px;
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            font-size: 18px;
+            transition: all 0.3s;
+            background: white;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 15px 20px;
+            border: none;
+            border-radius: 12px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            margin-bottom: 20px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .alert {
+            padding: 15px 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .alert-info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        .help-text {
+            font-size: 14px;
+            color: #6c757d;
+            line-height: 1.5;
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+
+        .teacher-link {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #e9ecef;
+            font-size: 14px;
+            color: #6c757d;
+        }
+
+        .teacher-link a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .teacher-link a:hover {
+            text-decoration: underline;
+        }
+
+        /* 반응형 */
+        @media (max-width: 600px) {
+            .login-container {
+                padding: 30px 20px;
+                margin: 10px;
+            }
+
+            .title {
+                font-size: 24px;
+            }
+
+            .logo {
+                font-size: 48px;
+            }
+
+            input, .btn {
+                padding: 12px 16px;
+                font-size: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="logo">🧠</div>
+        <h1 class="title">학습 시작하기</h1>
+        <div class="subtitle">센소리 앤 브레인 센터</div>
+
+        <div id="loginAlert" class="alert"></div>
+
+        <form id="loginForm">
+            <div class="form-group">
+                <label for="studentId">학생 아이디</label>
+                <input type="text" id="studentId" placeholder="선생님이 알려준 아이디를 입력하세요" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false">
+            </div>
+            
+            <div class="form-group">
+                <label for="studentPassword">비밀번호</label>
+                <input type="password" id="studentPassword" placeholder="비밀번호를 입력하세요" autocomplete="off">
+            </div>
+            
+            <button type="submit" id="loginBtn" class="btn">학습 시작</button>
+        </form>
+
+        <div class="help-text">
+            💡 <strong>로그인 방법:</strong><br>
+            선생님이 알려준 아이디와 비밀번호를 입력하세요.<br>
+            예시: 아이디가 "student01"이라면 그대로 입력하면 됩니다.
+        </div>
+
+        <div class="teacher-link">
+            <a href="../teacher/index.html">👩‍🏫 교사용 콘솔</a>
+        </div>
+    </div>
+
+    <script type="module">
+        import { authManager } from '../core/auth.js';
+
+        class StudentLoginApp {
+            constructor() {
+                this.setupEventListeners();
+                this.setupAuthListener();
+            }
+
+            setupEventListeners() {
+                const form = document.getElementById('loginForm');
+                form.addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    this.handleLogin();
+                });
+
+                // Enter 키로 로그인
+                document.getElementById('studentPassword').addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        this.handleLogin();
+                    }
+                });
+            }
+
+            setupAuthListener() {
+                authManager.addAuthListener((user) => {
+                    if (user && authManager.isStudent(user)) {
+                        // 학생 계정으로 로그인 성공 - 메인 페이지로 이동
+                        window.location.href = './index.html';
+                    } else if (user && authManager.isTeacher(user)) {
+                        // 교사 계정인 경우
+                        this.showAlert('교사 계정입니다. 교사용 콘솔로 이동합니다.', 'info');
+                        setTimeout(() => {
+                            window.location.href = '../teacher/index.html';
+                        }, 2000);
+                    }
+                });
+            }
+
+            async handleLogin() {
+                const studentId = document.getElementById('studentId').value.trim();
+                const password = document.getElementById('studentPassword').value;
+                const loginBtn = document.getElementById('loginBtn');
+
+                if (!studentId) {
+                    this.showAlert('학생 아이디를 입력해주세요.', 'error');
+                    document.getElementById('studentId').focus();
+                    return;
+                }
+
+                if (!password) {
+                    this.showAlert('비밀번호를 입력해주세요.', 'error');
+                    document.getElementById('studentPassword').focus();
+                    return;
+                }
+
+                // 로딩 상태
+                loginBtn.disabled = true;
+                loginBtn.textContent = '로그인 중...';
+                this.showAlert('로그인 중입니다...', 'info');
+
+                try {
+                    const result = await authManager.login(studentId, password);
+
+                    if (result.success) {
+                        if (authManager.isStudent(result.user)) {
+                            this.showAlert('로그인 성공! 학습 페이지로 이동합니다...', 'success');
+                            // authListener에서 페이지 이동 처리
+                        } else {
+                            this.showAlert('학생 계정이 아닙니다. 학생용 아이디를 확인해주세요.', 'error');
+                            await authManager.logout();
+                        }
+                    } else {
+                        if (result.code === 'auth/user-not-found') {
+                            this.showAlert('등록되지 않은 학생입니다. 선생님께 확인해주세요.', 'error');
+                        } else if (result.code === 'auth/wrong-password') {
+                            this.showAlert('비밀번호가 틀렸습니다. 다시 입력해주세요.', 'error');
+                        } else {
+                            this.showAlert(result.error || '로그인에 실패했습니다.', 'error');
+                        }
+                    }
+                } catch (error) {
+                    console.error('로그인 오류:', error);
+                    this.showAlert('로그인 중 오류가 발생했습니다.', 'error');
+                }
+
+                // 버튼 상태 복원
+                loginBtn.disabled = false;
+                loginBtn.textContent = '학습 시작';
+            }
+
+            showAlert(message, type) {
+                const alertEl = document.getElementById('loginAlert');
+                alertEl.textContent = message;
+                alertEl.className = `alert alert-${type}`;
+                alertEl.style.display = 'block';
+
+                // 성공 메시지가 아닌 경우 5초 후 자동 숨김
+                if (type !== 'success') {
+                    setTimeout(() => {
+                        alertEl.style.display = 'none';
+                    }, 5000);
+                }
+            }
+        }
+
+        // 앱 시작
+        new StudentLoginApp();
+    </script>
+</body>
+</html>

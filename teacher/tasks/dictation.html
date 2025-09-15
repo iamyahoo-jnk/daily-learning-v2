@@ -1,0 +1,946 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>받아쓰기 과제 관리</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* 헤더 */
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 25px;
+            border-radius: 20px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .back-btn {
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .back-btn:hover {
+            background: #545b62;
+            transform: translateY(-1px);
+        }
+
+        .header h1 {
+            color: #2c3e50;
+            font-size: 28px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .student-info {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 12px;
+            color: #495057;
+            font-weight: 500;
+        }
+
+        /* 섹션 */
+        .section {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+
+        .section-title {
+            color: #2c3e50;
+            font-size: 22px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #e9ecef;
+            padding-bottom: 10px;
+        }
+
+        /* 폼 그리드 */
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 25px;
+            margin-bottom: 25px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 8px;
+        }
+
+        input, select, textarea {
+            padding: 12px 15px;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        /* 날짜 범위 */
+        .date-range {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            gap: 12px;
+            align-items: center;
+        }
+        
+        .date-range input[type="date"] {
+            max-width: 150px;
+        }
+
+        /* 요일 선택 */
+        .weekdays {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .weekday-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            padding: 8px 12px;
+            background: #f8f9fa;
+            border-radius: 20px;
+            border: 2px solid #e9ecef;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .weekday-item:has(input:checked) {
+            background: #e3f2fd;
+            border-color: #2196f3;
+        }
+
+        .weekday-item input {
+            width: auto;
+            margin: 0;
+        }
+
+        /* 버튼 */
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            justify-content: center;
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        /* 액션 그룹 */
+        .action-group {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        /* 현재 과제 */
+        .current-assignment {
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .assignment-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .assignment-item:last-child {
+            border-bottom: none;
+        }
+
+        .assignment-info {
+            flex: 1;
+        }
+
+        .assignment-title {
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .assignment-details {
+            font-size: 14px;
+            color: #6c757d;
+            margin-top: 4px;
+        }
+
+        /* 상태 표시 */
+        .status {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .status-success {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .status-pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        /* 알림 */
+        .alert {
+            padding: 15px 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .alert.show {
+            display: block;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        /* 문장 에디터 */
+        textarea {
+            resize: vertical;
+            min-height: 200px;
+            line-height: 1.5;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        .sentence-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 8px;
+            font-size: 14px;
+        }
+
+        .sentence-info span {
+            color: #6c757d;
+            font-weight: 500;
+        }
+
+        .btn-link {
+            background: none;
+            border: none;
+            color: #dc3545;
+            font-size: 14px;
+            cursor: pointer;
+            text-decoration: underline;
+            padding: 0;
+        }
+
+        .btn-link:hover {
+            color: #c82333;
+        }
+
+        /* 반응형 */
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+
+            .header-top {
+                flex-direction: column;
+                gap: 15px;
+                align-items: stretch;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+
+            .action-group {
+                flex-direction: column;
+            }
+
+            .assignment-item {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 10px;
+            }
+
+            .weekdays {
+                justify-content: center;
+            }
+        }
+        
+        /* 과제 상세 모달 */
+        .assignment-detail-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        
+        .assignment-detail-modal.show {
+            display: flex;
+        }
+        
+        .modal-content {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 800px;
+            max-height: 80vh;
+            width: 90%;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            position: relative;
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #e9ecef;
+        }
+        
+        .modal-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #2c3e50;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .modal-close {
+            background: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            cursor: pointer;
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+        }
+        
+        .modal-close:hover {
+            background: #c82333;
+            transform: scale(1.1);
+        }
+        
+        .assignment-overview {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 25px;
+            border-left: 5px solid #007bff;
+        }
+        
+        .overview-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+        
+        .overview-item {
+            text-align: center;
+        }
+        
+        .overview-label {
+            font-size: 12px;
+            color: #6c757d;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+        }
+        
+        .overview-value {
+            font-size: 18px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        
+        .sentences-section {
+            margin-bottom: 25px;
+        }
+        
+        .section-subtitle {
+            font-size: 18px;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .sentences-list {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .sentence-item {
+            padding: 10px 15px;
+            background: white;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            border-left: 4px solid #007bff;
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+        }
+        
+        .sentence-item:last-child {
+            margin-bottom: 0;
+        }
+        
+        .submission-content {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .submission-item {
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            border-left: 4px solid #28a745;
+            text-align: center;
+        }
+        
+        .submission-item:last-child {
+            margin-bottom: 0;
+        }
+        
+        .submission-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            font-size: 14px;
+            color: #6c757d;
+            font-weight: 600;
+        }
+        
+        .submission-image {
+            max-width: 100%;
+            max-height: 300px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+        
+        .submission-image:hover {
+            transform: scale(1.02);
+        }
+        
+        .no-submission {
+            text-align: center;
+            color: #6c757d;
+            font-style: italic;
+            padding: 40px 20px;
+        }
+        
+        .submission-actions {
+            margin-top: 20px;
+            text-align: center;
+            padding-top: 15px;
+            border-top: 1px solid #dee2e6;
+        }
+        
+        .all-tasks-result {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 20px;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+        
+        .task-date-group {
+            margin-bottom: 25px;
+        }
+        
+        .task-date-header {
+            background: #007bff;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 8px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+        
+        .task-list-item {
+            background: white;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 10px;
+            border: 2px solid #e9ecef;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .task-list-item.completed {
+            border-color: #28a745;
+            background: #f8fff9;
+        }
+        
+        .task-info {
+            flex: 1;
+        }
+        
+        .task-info-title {
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 4px;
+        }
+        
+        .task-info-details {
+            font-size: 14px;
+            color: #6c757d;
+        }
+
+        /* 모달 내 완료 상태 배지 */
+        .task-status-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .task-status-badge.completed {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+            box-shadow: 0 2px 8px rgba(40, 167, 69, 0.3);
+        }
+
+        .task-status-badge.pending {
+            background: linear-gradient(135deg, #17a2b8, #007bff);
+            color: white;
+            box-shadow: 0 2px 8px rgba(23, 162, 184, 0.3);
+        }
+        
+        .completion-status {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        
+        .completion-status.completed {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .completion-status.pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .sentence-number {
+            background: #007bff;
+            color: white;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 600;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+        
+        .sentence-text {
+            flex: 1;
+            line-height: 1.5;
+            color: #2c3e50;
+        }
+        
+        .assignment-conditions {
+            background: #fff3cd;
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid #ffc107;
+        }
+        
+        .conditions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+        }
+        
+        .condition-item {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #e9ecef;
+        }
+        
+        .condition-label {
+            font-size: 14px;
+            color: #6c757d;
+            margin-bottom: 5px;
+        }
+        
+        .condition-value {
+            font-size: 16px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        
+        .weekdays-display {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        
+        .weekday-badge {
+            background: #007bff;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        @media (max-width: 768px) {
+            .modal-content {
+                padding: 20px;
+                margin: 20px;
+                width: calc(100% - 40px);
+            }
+            
+            .overview-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .conditions-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 헤더 -->
+        <div class="header">
+            <div class="header-top">
+                <a href="../index.html" class="back-btn">
+                    ← 메인으로
+                </a>
+                <h1>🎧 받아쓰기 과제 관리</h1>
+            </div>
+            <div id="studentInfo" class="student-info">
+                학생 정보 로드 중...
+            </div>
+        </div>
+
+        <!-- 현재 과제 상태 -->
+        <div class="section">
+            <h2 class="section-title">현재 배정된 과제</h2>
+            <div id="currentAssignments" class="current-assignment">
+                <div class="assignment-loading">과제 정보를 확인하는 중...</div>
+            </div>
+        </div>
+
+
+        <!-- 문장 기반 대량 배정 -->
+        <div class="section">
+            <h2 class="section-title">문장 기반 대량 배정</h2>
+            
+            <!-- 문장 입력 영역 -->
+            <div class="form-group">
+                <label for="sentenceEditor">문장 입력 (한 줄에 하나씩)</label>
+                <textarea 
+                    id="sentenceEditor" 
+                    rows="10" 
+                    placeholder="한 줄에 문장 하나씩 입력하세요.
+예:
+오늘은 날씨가 참 좋다.
+우리는 학교에서 공부한다.
+엄마가 맛있는 음식을 만들어주셨다."></textarea>
+                <div class="sentence-info">
+                    <span id="sentenceCount">문장 수: 0개</span>
+                    <button type="button" id="clearSentences" class="btn-link">전체 삭제</button>
+                </div>
+            </div>
+
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>배정 기간</label>
+                    <div class="date-range">
+                        <input type="date" id="sentenceStartDate">
+                        <span>~</span>
+                        <input type="date" id="sentenceEndDate">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="sentenceRate">재생 속도</label>
+                    <select id="sentenceRate">
+                        <option value="0.5">0.5x</option>
+                        <option value="0.8">0.8x</option>
+                        <option value="1.0" selected>1.0x</option>
+                        <option value="1.2">1.2x</option>
+                        <option value="1.5">1.5x</option>
+                        <option value="2.0">2.0x</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="sentencesPerDay">하루 문장 수</label>
+                    <select id="sentencesPerDay">
+                        <option value="1" selected>1문장</option>
+                        <option value="2">2문장</option>
+                        <option value="3">3문장</option>
+                        <option value="5">5문장</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>요일 선택</label>
+                <div class="weekdays">
+                    <label class="weekday-item">
+                        <input type="checkbox" id="sentenceMon" checked> 월요일
+                    </label>
+                    <label class="weekday-item">
+                        <input type="checkbox" id="sentenceTue" checked> 화요일
+                    </label>
+                    <label class="weekday-item">
+                        <input type="checkbox" id="sentenceWed" checked> 수요일
+                    </label>
+                    <label class="weekday-item">
+                        <input type="checkbox" id="sentenceThu" checked> 목요일
+                    </label>
+                    <label class="weekday-item">
+                        <input type="checkbox" id="sentenceFri" checked> 금요일
+                    </label>
+                    <label class="weekday-item">
+                        <input type="checkbox" id="sentenceSat"> 토요일
+                    </label>
+                    <label class="weekday-item">
+                        <input type="checkbox" id="sentenceSun"> 일요일
+                    </label>
+                </div>
+            </div>
+
+            <div class="action-group">
+                <button id="sentenceBulkAssignBtn" class="btn btn-success">
+                    📝 문장 기반 배정 시작
+                </button>
+                <button id="sentencePreviewBtn" class="btn btn-secondary">
+                    👁️ 배정 미리보기
+                </button>
+                <button id="clearTodayTaskBtn" class="btn btn-danger">
+                    🗑️ 오늘 과제만 삭제
+                </button>
+                <button id="clearAllTasksBtn" class="btn btn-danger">
+                    🗑️ 전체 과제 삭제
+                </button>
+            </div>
+
+            <div id="sentenceAlert" class="alert"></div>
+            <div id="sentenceProgress" style="margin-top: 15px; display: none;">
+                <div style="background: #e9ecef; border-radius: 10px; height: 20px; overflow: hidden;">
+                    <div id="sentenceProgressBar" style="background: #28a745; height: 100%; width: 0%; transition: width 0.3s; display: flex; align-items: center; justify-content: center; color: white; font-size: 12px; font-weight: 600;"></div>
+                </div>
+                <div id="sentenceProgressText" style="text-align: center; margin-top: 8px; color: #6c757d; font-size: 14px;"></div>
+            </div>
+        </div>
+
+        <!-- 전체 기간 과제 조회 -->
+        <div class="section">
+            <h2 class="section-title">전체 과제 조회</h2>
+            
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>조회 기간</label>
+                    <div class="date-range">
+                        <input type="date" id="viewStartDate">
+                        <span>~</span>
+                        <input type="date" id="viewEndDate">
+                    </div>
+                </div>
+            </div>
+
+            <div class="action-group">
+                <button id="viewAllTasksBtn" class="btn btn-success">
+                    📊 전체 과제 조회
+                </button>
+                <button id="cleanupOrphanDataBtn" class="btn btn-warning" style="background: #ffc107; color: #212529;">
+                    🧹 고아 데이터 정리
+                </button>
+                <button id="verifyCleanupBtn" class="btn btn-info" style="background: #17a2b8; color: white;">
+                    🔍 정리 결과 검증
+                </button>
+            </div>
+
+            <div id="allTasksResult" class="all-tasks-result" style="display: none;">
+                <!-- 동적으로 채워질 전체 과제 목록 -->
+            </div>
+        </div>
+    </div>
+
+    <!-- 과제 상세 보기 모달 -->
+    <div id="assignmentDetailModal" class="assignment-detail-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div>
+                    <h3>배정된 과제 상세 정보</h3>
+                    <div id="taskCompletionStatus" class="task-status-badge" style="margin-top: 8px;"></div>
+                </div>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="detail-section">
+                    <h4>📝 배정된 문장</h4>
+                    <div id="assignedSentences" class="sentence-list">
+                        <!-- 동적으로 채워질 문장들 -->
+                    </div>
+                </div>
+                
+                <div id="submissionSection" class="detail-section" style="display: none;">
+                    <h4>📸 학생이 제출한 과제</h4>
+                    <div id="submissionContent" class="submission-content">
+                        <!-- 동적으로 채워질 제출 정보 -->
+                    </div>
+                    <div class="submission-actions">
+                        <button id="confirmSubmissionBtn" class="btn btn-success">
+                            ✅ 과제 확인 완료
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary modal-close-btn">닫기</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="./dictation-management.js"></script>
+</body>
+</html>
