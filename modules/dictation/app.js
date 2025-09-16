@@ -710,34 +710,27 @@ iPhone의 Siri 음성으로 받아쓰기를 들을 수 있습니다!
     }
 
     setupAuthListener() {
-        authManager.addAuthListener(async (user) => {
-            this.currentUser = user;
-
-            if (user) {
-                // taskData가 있고 UID가 일치하는 경우 또는 taskData에 UID가 없는 경우
-                if (this.taskData && (this.taskData.uid === user.uid || !this.taskData.uid)) {
-                    // taskData에 UID가 없다면 현재 사용자 UID로 설정
-                    if (!this.taskData.uid) {
-                        this.taskData.uid = user.uid;
-                        localStorage.setItem('currentTask', JSON.stringify(this.taskData));
-                    }
-                    
-                    // 과제 완료 상태 확인 (중요: 모듈 시작 전 차단)
-                    const isCompleted = await this.checkTaskCompletion();
-                    if (isCompleted) {
-                        this.showCompletedTaskMessage();
-                        return;
-                    }
-                    
-                    await this.loadProblem();
-                } else if (!this.taskData) {
-                    this.showError('과제 데이터를 찾을 수 없습니다.');
-                } else {
-                    this.showError('로그인 정보가 일치하지 않습니다.');
-                }
-            } else {
-                this.showError('로그인이 필요합니다.');
-            }
+        // 데모 모드: 로그인 없이도 작동하도록 수정
+        console.log('🚀 데모 모드로 시작합니다 (로그인 우회)');
+        
+        // 가짜 사용자 생성
+        this.currentUser = {
+            uid: 'demo-user',
+            email: 'demo@example.com'
+        };
+        
+        // 기본 taskData 설정
+        if (!this.taskData) {
+            this.taskData = {
+                uid: 'demo-user',
+                taskId: 'demo-dictation',
+                title: '받아쓰기 연습 (데모)'
+            };
+        }
+        
+        // 바로 loadProblem 실행
+        this.loadProblem().catch(error => {
+            console.error('loadProblem 오류:', error);
         });
     }
 
