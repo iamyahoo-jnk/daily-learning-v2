@@ -968,12 +968,30 @@ iPhone의 Siri 음성으로 받아쓰기를 들을 수 있습니다!
             
             // 기기별 최적화된 파라미터 적용
             if (device.isIOS) {
-                // iPhone용: 자연스럽고 명확한 음성 설정
-                utterance.rate = Math.max(0.9, Math.min(1.3, this.currentRate)); // 자연스러운 속도
-                utterance.pitch = 1.0; // 자연스러운 톤 (너무 높지 않게)
-                utterance.volume = 1.0; // 명확한 볼륨
+                // iPhone용: 강제로 여성 음성 설정
+                utterance.rate = 0.8; // 느린 속도 (더 자연스럽게)
+                utterance.pitch = 1.5; // 높은 톤 (여성적으로)
+                utterance.volume = 1.0; // 최대 볼륨
+                utterance.lang = 'ko-KR'; // 한국어 강제 지정
                 
-                console.log(`🍎 iPhone 자연스러운 음성 설정: rate=${utterance.rate.toFixed(2)}, pitch=${utterance.pitch}, volume=${utterance.volume}`);
+                // iPhone에서 가장 확실한 여성 음성 강제 선택
+                const voices = speechSynthesis.getVoices();
+                const femaleVoices = voices.filter(v => 
+                    v.lang.includes('ko') && 
+                    (v.name.toLowerCase().includes('yuna') || 
+                     v.name.toLowerCase().includes('female') ||
+                     v.name.toLowerCase().includes('siri') ||
+                     (!v.name.toLowerCase().includes('male') && !v.name.toLowerCase().includes('남성')))
+                );
+                
+                if (femaleVoices.length > 0) {
+                    utterance.voice = femaleVoices[0];
+                    console.log(`🍎 iPhone 강제 여성 음성 선택: ${femaleVoices[0].name}`);
+                } else {
+                    console.log('🍎 iPhone 여성 음성을 찾지 못함, 기본 설정 사용');
+                }
+                
+                console.log(`🍎 iPhone 강력한 여성 음성 설정: rate=${utterance.rate}, pitch=${utterance.pitch}, voice=${utterance.voice?.name || 'default'}`);
                 
             } else if (device.isAndroid) {
                 // Android 최적화: 부드러운 여성 톤
