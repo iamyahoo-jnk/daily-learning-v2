@@ -3,20 +3,26 @@
   "version": "1.0.0",
   "description": "Daily Learning App with Google Cloud TTS",
   "main": "index.js",
+  "type": "commonjs",
   "engines": {
-    "node": "18.x"
+    "node": "18.x",
+    "npm": ">=8.0.0"
   },
   "scripts": {
-    "build": "npm install",
-    "dev": "netlify dev"
+    "build": "npm install --production",
+    "dev": "netlify dev",
+    "postinstall": "npm ls @google-cloud/text-to-speech"
   },
   "dependencies": {
-    "@google-cloud/text-to-speech": "^5.0.0"
+    "@google-cloud/text-to-speech": "5.0.0"
   },
   "devDependencies": {
     "netlify-cli": "^17.0.0"
   },
-  "keywords": ["education", "tts", "korean"],
+  "bundledDependencies": [
+    "@google-cloud/text-to-speech"
+  ],
+  "keywords": ["education", "tts", "korean", "netlify-functions"],
   "author": "Daily Learning Team",
   "license": "MIT"
 }
