@@ -1,0 +1,22 @@
+{
+  "name": "daily-learning-v2",
+  "version": "1.0.0",
+  "description": "Daily Learning App with Google Cloud TTS",
+  "main": "index.js",
+  "engines": {
+    "node": "18.x"
+  },
+  "scripts": {
+    "build": "npm install",
+    "dev": "netlify dev"
+  },
+  "dependencies": {
+    "@google-cloud/text-to-speech": "^5.0.0"
+  },
+  "devDependencies": {
+    "netlify-cli": "^17.0.0"
+  },
+  "keywords": ["education", "tts", "korean"],
+  "author": "Daily Learning Team",
+  "license": "MIT"
+}
