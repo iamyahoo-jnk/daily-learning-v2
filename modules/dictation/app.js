@@ -975,19 +975,12 @@ iPhone의 Siri 음성으로 받아쓰기를 들을 수 있습니다!
             
             // 기기별 최적화된 파라미터 적용
             if (device.isIOS) {
-                // iOS 최적화: 더 자연스럽고 부드러운 여성 톤
-                if (selectedVoice && (selectedVoice.name.includes('Siri') || selectedVoice.name.includes('Yuna'))) {
-                    // Siri 또는 Yuna 음성: 부드러운 여성 톤
-                    utterance.rate = Math.max(0.65, Math.min(1.6, this.currentRate * 0.9)); // 더 느리고 부드럽게
-                    utterance.pitch = 1.15; // 더 높고 부드러운 여성 톤
-                    utterance.volume = 0.9; // 부드러운 볼륨
-                } else {
-                    // 기타 iOS 음성도 부드럽게
-                    utterance.rate = Math.max(0.6, Math.min(1.5, this.currentRate * 0.85));
-                    utterance.pitch = 1.2; // 더 여성적인 톤
-                    utterance.volume = 0.85;
-                }
-                console.log(`🍎 iOS 부드러운 여성 톤 적용: rate=${utterance.rate.toFixed(2)}, pitch=${utterance.pitch}, volume=${utterance.volume}`);
+                // iPhone용: 자연스럽고 명확한 음성 설정
+                utterance.rate = Math.max(0.9, Math.min(1.3, this.currentRate)); // 자연스러운 속도
+                utterance.pitch = 1.0; // 자연스러운 톤 (너무 높지 않게)
+                utterance.volume = 1.0; // 명확한 볼륨
+                
+                console.log(`🍎 iPhone 자연스러운 음성 설정: rate=${utterance.rate.toFixed(2)}, pitch=${utterance.pitch}, volume=${utterance.volume}`);
                 
             } else if (device.isAndroid) {
                 // Android 최적화: 부드러운 여성 톤
@@ -1763,35 +1756,20 @@ iPhone의 Siri 음성으로 받아쓰기를 들을 수 있습니다!
         let voicePriorities = [];
 
         if (device.isIOS) {
-            // iOS 전용 실제 여성 음성 우선순위 (최신 iOS 버전 기준)
+            // iPhone용 간단하고 확실한 음성 우선순위
             voicePriorities = [
-                // iOS 16+ 최신 여성 음성들
-                'Yuna',
-                'Yuna (Premium)', 
-                'Yuna (Enhanced)',
-                
-                // iOS Siri 여성 음성 변형들
-                'Siri Female',
-                'Siri Female (Korean)', 
-                'Siri (Female, Korean)',
-                'Korean Siri Female',
-                
-                // iOS 기본 여성 음성들
-                'Korean Female',
-                'Korean (Korea) Female',
-                'Korean (South Korea) - Female',
-                'Korean Female Voice',
-                '한국어 여성',
-                '한국어 (대한민국) 여성',
-                
-                // iOS 일반 음성 (대부분 여성)
+                // 최우선: iOS 기본 한국어 음성 (보통 Yuna)
                 'Korean (South Korea)',
-                'Korean (Korea)',
-                '한국어 (대한민국)',
                 'Korean',
-                '한국어'
+                '한국어',
                 
-                // 주의: 남성 음성 제외됨
+                // iOS 고품질 음성들
+                'Yuna',
+                'Sora',
+                'Jieun',
+                
+                // 백업용
+                'Microsoft Heami - Korean (Korea)'
             ];
         } else if (device.isAndroid) {
             // Android 전용 우선순위
